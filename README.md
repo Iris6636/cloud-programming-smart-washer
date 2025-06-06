@@ -125,6 +125,13 @@ Group 6 — Cloud Programming Project
 
 ---
 
+## 🔗 相關連結
+
+- 🎥 [系統 Demo 影片](https://youtu.be/your-video-link)
+- 🖼️ [簡報 PDF 下載](docs/final_presentation.pdf)
+
+---
+
 ## 📎 注意事項｜Notes
 
 - `config/` 資料夾請手動建立並放入憑證與設定檔。  
