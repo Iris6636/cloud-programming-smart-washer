@@ -1,8 +1,3 @@
----
-title: API Gateway Setup
-
----
-
 # API Gatway
 
 ## IOT API `team06-iot-api`
