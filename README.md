@@ -29,6 +29,19 @@ The system consists of three layers:
 2. **AWS Cloud Backend**: Lambda for business logic, DynamoDB for state, Rekognition for OCR, SNS for notifications
 3. **Web Frontend**: S3 static site + Cognito auth for status queries and reservations
 
+<img width="4143" height="1851" alt="CP_team6_final_project_architecture-1" src="https://github.com/user-attachments/assets/f41cc13b-c539-4e85-aa1a-38ee4593ae09" />
+
+---
+
+## Demo & Presentation
+
+如需更直觀了解本系統的實際運作流程與操作方式，可參考以下資源：
+These resources provide a quick overview of the system workflow, implementation, and usage scenario.
+
+📑 Presentation Slides: https://drive.google.com/file/d/1e8tcUKsSb5AWoy7UB3i3GPrfbrgC5sVS/view?usp=sharing
+🔗 Demo Video: https://drive.google.com/file/d/1Z5XREwp7qat0I56Rl88J737r4CjiqLVn/view?usp=sharing
+
+
 ---
 
 ## 使用技術｜Tech Stack
