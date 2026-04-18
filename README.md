@@ -1,11 +1,11 @@
 # 公用洗衣機智慧提醒系統｜Smart Washer Notification System
 
-> 洗好即時知，生活更有效率！  
+> 洗好即時知，生活更有效率！
 > Be instantly notified when laundry is done — smarter living starts here!
 
 ---
 
-## 📘 專案簡介｜Project Introduction
+## 專案簡介｜Project Introduction
 
 宿舍洗衣機為公用資源，若有人洗完未及時取出，會造成他人等待與機台閒置。本專案旨在開發一套結合 IoT 與雲端技術的自動通知系統，提升洗衣效率與使用便利性。
 
@@ -13,130 +13,287 @@ Laundry machines in dormitories are shared resources. When users forget to pick 
 
 ---
 
-## 🧱 系統架構圖｜System Architecture
+## 系統架構圖｜System Architecture
 
-![System Diagram](architecture/system_architecture.png)
+<!-- TODO: 加入架構圖 / Add architecture diagram -->
 
-本系統包含 IoT 裝置端、雲端處理端與使用者網頁端，協同完成洗衣偵測、時間辨識、狀態更新與通知推播。
+本系統包含三大部分：
 
-The system consists of IoT devices, cloud backend, and a web frontend. Together, they detect laundry activity, recognize remaining time, update status, and notify users.
+1. **IoT 裝置端（Raspberry Pi）**：偵測洗衣機震動狀態、拍攝面板倒數畫面、控制門鎖
+2. **AWS 雲端處理端**：Lambda 函式處理業務邏輯、DynamoDB 儲存狀態、Rekognition 辨識剩餘時間、SNS 推播通知
+3. **使用者網頁端**：S3 靜態網站 + Cognito 登入，查詢機台狀態與操作預約
+
+The system consists of three layers:
+
+1. **IoT Device (Raspberry Pi)**: Detects vibration, captures washer display images, controls door lock
+2. **AWS Cloud Backend**: Lambda for business logic, DynamoDB for state, Rekognition for OCR, SNS for notifications
+3. **Web Frontend**: S3 static site + Cognito auth for status queries and reservations
 
 ---
 
-## 🔧 使用技術｜Tech Stack
+## 使用技術｜Tech Stack
 
-### 🎯 AWS 雲端服務｜AWS Services
-- IoT Core（設備通訊 / Device Communication）
-- Lambda（邏輯處理 / Business Logic）
-- DynamoDB（狀態儲存 / State Storage）
-- S3（影像儲存 / Image Upload）
-- Rekognition（影像文字辨識 / OCR）
-- SNS（通知推播 / Notification Service）
-- Cognito（使用者驗證 / Auth）
-- API Gateway（前後端連接 / API Access）
-- EventBridge（預約排程 / Scheduled Events）
-- Lex（聊天機器人 / Chatbot）
+### AWS 雲端服務｜AWS Services
 
-### 📦 IoT 裝置與硬體｜IoT & Hardware
+| 服務 Service | 用途 Purpose |
+|---|---|
+| **IoT Core** | 設備 MQTT 通訊 / Device Communication |
+| **Lambda** | 無伺服器業務邏輯 / Serverless Business Logic (17 functions) |
+| **DynamoDB** | 洗衣機狀態與使用者資料儲存 / State & User Storage |
+| **S3** | 影像儲存 + 靜態網站託管 / Image Storage + Static Hosting |
+| **Rekognition** | 影像文字辨識洗衣剩餘時間 / OCR for Remaining Time |
+| **SNS** | Email 通知推播 / Email Notifications |
+| **Cognito** | 使用者驗證與授權 / Authentication & Authorization |
+| **API Gateway** | REST API 前後端連接 / REST API |
+| **EventBridge Scheduler** | 預約到期排程 / Scheduled Reservation Expiry |
+| **Lex V2** | 中文聊天機器人 / Chinese Chatbot |
+| **CloudWatch** | 監控與告警 / Monitoring & Alarms |
+
+### IoT 裝置與硬體｜IoT & Hardware
+
 - Raspberry Pi 3 / 4
-- V2 Camera 模組
-- 震動感測器 SW-420
-- 電磁閥 DS-0420S
+- V2 Camera Module（拍攝洗衣機面板）
+- SW-420 震動感測器（偵測洗衣機運轉）
+- DS-0420S 電磁閥（門鎖控制）
+- 七段顯示器（顯示倒數時間）
 
-### 💻 前端技術｜Frontend
-- HTML / CSS / JavaScript
-- S3 Static Hosting + Cognito Login
+### 前端技術｜Frontend
+
+- HTML / CSS / JavaScript（Vite 建置）
+- S3 Static Website Hosting
+- Cognito User Pool 登入驗證
 
 ---
 
-## 🚀 如何使用本專案｜Getting Started
+## 專案結構｜Project Structure
 
-### ✅ 下載專案｜Clone the Repo
-
-```bash
-git clone https://github.com/your-account/smart-washer-project.git
-cd smart-washer-project
+```
+clone_aws_washer_selfuse/
+├── backend/                          # Lambda 函式原始碼
+│   └── lambda_functions/             # 17 個 Python Lambda functions
+├── chatbot/                          # Lex V2 聊天機器人
+│   ├── AWS_lex_setting_README.md     # Lex 設定說明
+│   └── WasherHelper-export.zip       # Lex V2 匯出檔（可直接匯入）
+├── config/                           # IoT 憑證與設定（勿上傳 Git）
+│   └── README.md                     # 憑證放置說明
+├── deployment/                       # 基礎設施即程式碼 (IaC)
+│   ├── infra/                        # Terraform 設定檔（terraform apply 即可部署）
+│   │   ├── main.tf                   # Provider 與基本設定
+│   │   ├── variables.tf              # 輸入變數（region, email）
+│   │   ├── outputs.tf                # 輸出值（API URL, Cognito ID）
+│   │   ├── iam.tf                    # IAM Role（Lambda + Scheduler）
+│   │   ├── lambda.tf                 # Lambda 函式定義
+│   │   ├── dynamodb.tf               # DynamoDB 資料表（含 Stream）
+│   │   ├── sns.tf                    # SNS Topic + Email Subscription
+│   │   ├── s3.tf                     # S3 Bucket（影像 + 靜態網站）
+│   │   ├── cognito.tf                # Cognito User Pool + Client
+│   │   ├── api_gateway.tf            # API Gateway REST API + CORS
+│   │   ├── iot.tf                    # IoT Thing + Topic Rules + Policy
+│   │   ├── triggers.tf               # DynamoDB Stream / S3 → Lambda 觸發器
+│   │   ├── cloudwatch.tf             # CloudWatch Metric Alarm
+│   │   └── terraform.tfvars.example  # 變數範本
+│   ├── lambda/                       # Lambda 函式 .zip 部署包
+│   ├── scripts/                      # 輔助腳本
+│   │   └── package_lambdas.sh        # Lambda 打包腳本
+│   └── reference/                    # 原始部署匯出紀錄（僅供參考）
+│       └── generated/                # terraformer 匯出的 state snapshot
+├── docs/                             # 文件
+│   ├── API Gateway Setup.md          # API Gateway 設定指南
+│   ├── deployment_guide.md           # 完整部署指南
+│   └── iot_setup_guide.md            # IoT 裝置設定指南
+├── iot/                              # Raspberry Pi IoT 裝置程式
+│   └── actuator/
+│       ├── main.py                   # 主控程式（MQTT + 感測器 + 相機）
+│       ├── Lock_motor.py             # GPIO 馬達與門鎖控制
+│       └── LED.py                    # 七段顯示器控制
+├── web/                              # 前端網頁
+│   └── frontend/
+│       ├── index.html                # SPA 進入點
+│       └── assets/                   # Vite 編譯後的 JS/CSS
+├── .env.example                      # 環境變數範本
+└── README.md                         # 本文件
 ```
 
-或下載 ZIP → 解壓縮  
-Or download the ZIP and extract it.
+---
+
+## Lambda 函式清單｜Lambda Functions
+
+### API 端點觸發｜API-Triggered
+
+| 函式 Function | API 路徑 | 說明 Description |
+|---|---|---|
+| `team06_HandleUseRequest_NoReservation` | POST `/use` | 無預約直接使用洗衣機 / Start wash without reservation |
+| `team06_HandleUseRequest_WithReservation` | POST `/use_reserved` | 有預約使用洗衣機 / Start wash with valid reservation |
+| `team06_HandleReserveRequest` | POST `/reserve` | 預約洗衣機 / Reserve an available washer |
+| `team06_HandleEndRequest_UnlockWasher` | POST `/unlock` | 結束洗衣並開鎖 / End wash session and unlock door |
+
+### IoT 事件觸發｜IoT-Triggered
+
+| 函式 Function | 說明 Description |
+|---|---|
+| `team06_StartWash` | 開始洗衣：鎖門、啟動拍照 / Lock door, start camera capture |
+| `team06_FinishWash` | 洗衣結束：停止震動偵測 / Stop vibration detection |
+| `team06_WasherHasLocked` | 門鎖回報：更新 DynamoDB 狀態 / Door locked callback |
+| `team06_WasherHasUnlocked` | 開鎖回報：更新 DynamoDB 狀態 / Door unlocked callback |
+
+### S3 / DynamoDB Stream 觸發
+
+| 函式 Function | 觸發來源 Trigger | 說明 Description |
+|---|---|---|
+| `team06-RekognizeTimeAndUpdateDB` | S3 上傳事件 | Rekognition OCR 辨識剩餘時間 / Detect remaining time from image |
+| `team06-SendUserLeftTimeAlert` | DynamoDB Stream | 剩餘 3 分鐘與 0 分鐘時推送通知 / Alert at 3min & 0min remaining |
+| `team06_ActivateEvent` | DynamoDB Stream | 建立預約到期排程 / Create reservation expiry schedule |
+| `team06_EndWashSession` | DynamoDB Stream | 洗衣結束處理，通知預約者 / Handle wash completion |
+
+### 排程觸發｜Scheduled
+
+| 函式 Function | 說明 Description |
+|---|---|
+| `team06_CheckAndReleaseWasher` | 預約 5 分鐘未使用則釋放 / Release reserved washer after 5min timeout |
+| `team06_DelayedShadowUpdate` | 洗衣結束 10 秒後鎖門 / Lock door 10s after wash completion |
+
+### 其他輔助｜Utilities
+
+| 函式 Function | 說明 Description |
+|---|---|
+| `team06_V2base64toS3` | 解碼 base64 影像並上傳 S3 / Decode base64 image to S3 |
+| `team06-SendReservedUserNotification` | 通知預約者洗衣機已可使用 / Notify reserved user washer is ready |
 
 ---
 
-### ✅ 執行 IoT 裝置程式｜Run IoT Device Code
+## 快速開始｜Getting Started
+
+### 1. 下載專案｜Clone the Repo
 
 ```bash
-cd iot/
+git clone https://github.com/Iris6636/clone_aws_washer_selfuse.git
+cd clone_aws_washer_selfuse
+```
+
+### 2. 設定 Terraform 變數｜Configure Terraform Variables
+
+```bash
+cd deployment/infra
+cp terraform.tfvars.example terraform.tfvars
+# 編輯 terraform.tfvars，填入你的通知 Email
+```
+
+### 3. 部署 AWS 基礎設施｜Deploy Infrastructure
+
+使用 Terraform 部署所有 AWS 資源（IAM、Lambda、DynamoDB、S3、API Gateway、Cognito、IoT、SNS、CloudWatch）：
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+部署完成後執行 `terraform output` 查看重要資源 ID。
+
+完整部署指南請見 [docs/deployment_guide.md](docs/deployment_guide.md)。
+
+### 4. 設定 IoT 裝置｜Setup IoT Device
+
+在 Raspberry Pi 上：
+
+```bash
+cd iot/actuator/
+# 將 AWS IoT 憑證放入 config/ 目錄
 python3 main.py
 ```
 
-請事先連接感測器與相機，並於 `config/` 中放置 IoT 憑證與設定檔。  
-Connect the sensors and camera, and ensure your AWS IoT certificates and config file are placed under `config/`.
+詳細硬體接線與憑證設定請見 [docs/iot_setup_guide.md](docs/iot_setup_guide.md)。
 
----
+### 5. 部署前端網頁｜Deploy Frontend
 
-### ✅ 部署 Lambda 函式｜Deploy Lambda Functions
+將 `web/frontend/` 的內容上傳至 S3 靜態網站桶：
 
-進入 `backend/lambda_functions/`，依功能部署下列程式碼：  
-Go to `backend/lambda_functions/` and deploy the following Lambda functions:
-
-| 檔案 File | 功能 Function |
-|-----------|----------------|
-| `process_image.py` | 拍照上傳 + Rekognition 辨識<br>Upload image & recognize time |
-| `update_status.py` | 更新洗衣狀態至 DB<br>Update washer status to DB |
-| `send_notification.py` | 傳送 SNS 通知<br>Send user notification |
-| `schedule_checker.py` | 檢查預約是否過期<br>Check if reservation expired |
-
----
-
-### ✅ 使用網頁與聊天機器人｜Use Web & Chatbot
-
-- `web/frontend/`：S3 上架靜態網頁，可登入與查詢機台
-- `web/chatbot/`：Lex 串接 Lambda，處理自然語言查詢
-
-- `web/frontend/`: Deployed via AWS S3 static hosting with login + status display  
-- `web/chatbot/`: Handles natural language queries via Lex + Lambda
-
----
-
-## 📁 專案結構｜Project Structure
-
+```bash
+aws s3 sync web/frontend/ s3://team06website/ --delete
 ```
-smart-washer-project/
-├── iot/                  # Raspberry Pi 裝置端程式 / IoT Device Scripts
-├── backend/              # Lambda 函式與 API Gateway
-├── web/                  # 前端網頁與聊天機器人
-├── config/               # IoT 憑證與設定（勿上傳）
-├── docs/                 # 架構圖與使用說明文件
-└── README.md             # 專案說明
+
+### 6. 設定聊天機器人｜Setup Chatbot
+
+在 AWS Lex V2 控制台匯入 `chatbot/WasherHelper-export.zip`。
+詳見 [chatbot/AWS_lex_setting_README.md](chatbot/AWS_lex_setting_README.md)。
+
+---
+
+## API 端點｜API Endpoints
+
+Base URL: `https://{api-id}.execute-api.us-east-1.amazonaws.com/{stage}`
+
+所有 API 需要 Cognito User Pool Token 驗證。
+
+| Method | Path | 說明 Description |
+|--------|------|-----------------|
+| POST | `/use` | 無預約使用洗衣機 / Use washer without reservation |
+| POST | `/use_reserved` | 有預約使用洗衣機 / Use washer with reservation |
+| POST | `/reserve` | 預約洗衣機 / Reserve a washer |
+| POST | `/unlock` | 結束使用並開鎖 / End session and unlock |
+
+Request Body 範例：
+```json
+{
+  "user_id": "user123",
+  "washer_id": 1
+}
 ```
 
 ---
 
-## 👥 團隊成員｜Team Members
+## DynamoDB 資料表｜Database Schema
 
-雲端程式設計 第6組  
-Group 6 — Cloud Programming Project  
+### team06-WasherStatus
 
-- 吳君慧 Peggy Wu  
-- 何佳穎 Chia-Ying Ho  
-- 簡宏諭 Hung-Yu Chien  
+| 欄位 Field | 型態 Type | 說明 Description |
+|---|---|---|
+| `washer_id` (PK) | Number | 洗衣機編號 |
+| `in_use` | Boolean | 是否使用中 |
+| `reserved` | Boolean | 是否已預約 |
+| `door_locked` | Boolean | 門鎖狀態 |
+| `vibration` | Boolean | 震動偵測狀態 |
+| `time` | Number | 剩餘分鐘數（Rekognition OCR） |
+| `expire_at` | Number | 預約到期時間戳 |
+
+### team06-UserInfo
+
+| 欄位 Field | 型態 Type | 說明 Description |
+|---|---|---|
+| `user_id` (PK) | String | 使用者 ID |
+| `email` | String | 通知用 Email |
+| `in_use` | Number | 正在使用的 washer_id |
+| `reserved` | Number | 已預約的 washer_id |
+
+---
+
+## 團隊成員｜Team Members
+
+雲端程式設計 第6組｜Group 6 — Cloud Programming Project
+
+- 吳君慧 Peggy Wu
+- 何佳穎 Chia-Ying Ho
+- 簡宏諭 Hung-Yu Chien
 - 邱子洋 Tzu-Yang Chiu
 
 ---
 
-## 🔗 相關連結
+## 相關文件｜Documentation
 
-- 🎥 [系統 Demo 影片](https://youtu.be/your-video-link)
-- 🖼️ [簡報 PDF 下載](docs/final_presentation.pdf)
+| 文件 Document | 說明 Description |
+|---|---|
+| [docs/deployment_guide.md](docs/deployment_guide.md) | 完整 Terraform 部署指南 |
+| [docs/iot_setup_guide.md](docs/iot_setup_guide.md) | IoT 裝置硬體與憑證設定 |
+| [docs/API Gateway Setup.md](docs/API%20Gateway%20Setup.md) | API Gateway 設定步驟 |
+| [chatbot/AWS_lex_setting_README.md](chatbot/AWS_lex_setting_README.md) | Lex V2 聊天機器人設定 |
 
 ---
 
-## 📎 注意事項｜Notes
+## 注意事項｜Notes
 
-- `config/` 資料夾請手動建立並放入憑證與設定檔。  
-  請勿將 `.pem`、`.json` 等敏感檔案上傳 GitHub。  
-  → Create `config/` and place certificates locally. Do NOT upload secrets to GitHub.
+- `config/` 資料夾內含 IoT 憑證，**請勿上傳至 GitHub**。
+  詳見 [config/README.md](config/README.md) 了解需要哪些憑證檔案。
 
-- 若需詳細安裝流程，請見 [`docs/setup_guide.md`](docs/setup_guide.md)  
-  For detailed setup, see `docs/setup_guide.md`
+- 所有 Lambda 函式使用 **Python 3.9** runtime。
+
+- 部署前請確認 AWS CLI 已設定正確的 credentials 與 region (`us-east-1`)。

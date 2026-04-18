@@ -1,6 +1,9 @@
 import boto3
 import base64
 import json
+import os
+
+S3_BUCKET = os.environ.get("S3_BUCKET_IMAGES", "team06-times-image-temp")
 
 def lambda_handler(event, context):
     print("📥 Received MQTT event:", json.dumps(event))
@@ -20,7 +23,7 @@ def lambda_handler(event, context):
     s3 = boto3.client("s3")
     try:
         s3.put_object(
-            Bucket="team06-times-image",  
+            Bucket=S3_BUCKET,
             Key=f"uploads/{filename}",
             Body=image_data,
             ContentType="image/jpeg"

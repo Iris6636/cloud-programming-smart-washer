@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and fill in your values
+# cp terraform.tfvars.example terraform.tfvars
+
+notification_email = "your-email@example.com"
+
+# Optional: change region (default: us-east-1)
+# aws_region = "us-east-1"
+
+# S3 bucket names (must be globally unique, change before deploy)
+s3_bucket_images  = "team06-times-image-temp"
+s3_bucket_website = "team06website-temp"

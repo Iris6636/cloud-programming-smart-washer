@@ -1,5 +1,9 @@
 provider "aws" {
-  region = "us-east-1"  # 可改成你實際部署區域
+  region = var.aws_region
+}
+
+locals {
+  s3_website_origin = "http://${var.s3_bucket_website}.s3-website-${var.aws_region}.amazonaws.com"
 }
 
 terraform {

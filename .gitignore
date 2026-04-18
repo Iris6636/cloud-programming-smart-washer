@@ -1,0 +1,28 @@
+# AWS IoT 憑證 / IoT Certificates
+config/*.pem
+config/*.key
+config/*.crt
+
+# 環境變數 / Environment variables
+.env
+
+# Terraform state & cache
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Terraform personal config (copy from terraform.tfvars.example)
+terraform.tfvars
+
+# Python
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
