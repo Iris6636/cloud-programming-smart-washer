@@ -34,6 +34,7 @@ The system consists of three layers:
     <img src="docs/CP_team6_final_project_architecture.png" alt="System Architecture" width="1000">
   </a>
 </p>
+
 ---
 
 ## Demo & Presentation
