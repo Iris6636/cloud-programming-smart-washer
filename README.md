@@ -8,7 +8,7 @@
 
 *This repo is the 113-2 NTHU Cloud Programming group final project. Post-course, full Terraform IaC was added to make the system fully reproducible on any AWS account.*
 
-📑 [簡報 Slides](https://drive.google.com/file/d/1e8tcUKsSb5AWoy7UB3i3GPrfbrgC5sVS/view?usp=sharing) ・ 🎥 [Demo 影片 Video](https://drive.google.com/file/d/1Z5XREwp7qat0I56Rl88J737r4CjiqLVn/view?usp=sharing)
+📑 [簡報 Slides](https://drive.google.com/file/d/1e8tcUKsSb5AWoy7UB3i3GPrfbrgC5sVS/view?usp=sharing) ・ 🎥 [專案介紹 + Demo 影片](https://drive.google.com/file/d/1jfq16J0ZoaIcaZMJMjlO0rIzHEOMPdVS/view?usp=sharing)
 
 ---
 
